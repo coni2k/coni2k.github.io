@@ -1,5 +1,25 @@
 <!DOCTYPE html>
 <html>
+<script>
+
+console.log("test");
+
+httpGetAsync("", function(responseText) {
+	console.log("responseText", responseText);
+});
+
+function httpGetAsync(theUrl, callback)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
+
+</script>
 <body>
 <h1>Hello World</h1>
 <p>I'm hosted with GitHub Pages. yaaass!</p>
