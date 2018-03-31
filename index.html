@@ -1,27 +1,38 @@
 <!DOCTYPE html>
 <html>
-<script>
+<head>
 
-console.log("test");
-
-httpGetAsync("https://api.backbone.forcrowd.org/odata/v1/$metadata", function(responseText) {
-	console.log("responseText", responseText);
-});
-
-function httpGetAsync(theUrl, callback)
-{
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
-    }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-    xmlHttp.send(null);
-}
-
-</script>
+</head>
 <body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages. yaaass!</p>
+    <script type="text/javascript">
+
+        console.log("test");
+
+        // Get the project
+        httpGetAsync("https://api.backbone.forcrowd.org/odata/v1/Project(21)", function (responseText) {
+            console.log("responseText", responseText);
+        });
+
+        //httpGetAsync("https://api.backbone.forcrowd.org/odata/v1/$metadata", function (responseText) {
+        //    console.log("responseText", responseText);
+        //});
+
+        function httpGetAsync(theUrl, callback) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                    callback(xmlHttp.responseText);
+            }
+            xmlHttp.open("GET", theUrl, true); // true for asynchronous
+            xmlHttp.send(null);
+        }
+
+    </script>
+    
+    <h1>Todo App</h1>
+    <ul id="list">
+        <li></li>
+    </ul>
+    <p>I'm hosted with GitHub Pages. yaaass!</p>
 </body>
 </html>
