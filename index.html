@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-
+    <title>Todo App</title>
 </head>
 <body>
     <script type="text/javascript">
@@ -9,7 +9,7 @@
         console.log("test");
 
         // Get the project
-        httpGetAsync("https://api.backbone.forcrowd.org/odata/v1/Project(21)", function (responseText) {
+        httpGetAsync("https://api.backbone.forcrowd.org/odata/v1/Project(21)?$expand=User,ElementSet/ElementFieldSet,ElementSet/ElementItemSet/ElementCellSet", function (responseText) {
             console.log("responseText", responseText);
         });
 
@@ -34,5 +34,8 @@
         <li></li>
     </ul>
     <p>I'm hosted with GitHub Pages. yaaass!</p>
+    <footer>
+        v0.2
+    </footer>
 </body>
 </html>
