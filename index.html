@@ -1,41 +1,197 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Todo App</title>
+    <style type="text/css">
+        html {
+            background-color: #3f647f;
+            font-family: Roboto, "Helvetica Neue", sans-serif;
+            font-size: 18px;
+        }
+
+        body {
+            background-color: #e4e4e4;
+            margin: 10px auto;
+            padding: 0;
+            width: 95%;
+            box-shadow: 2px 2px #4e4e4e;
+        }
+
+        h1 {
+            margin: 0;
+            padding: 30px 0;
+            text-align: center;
+        }
+
+        hr {
+            border-top: 1px solid #3f647f;
+            margin: 0 auto;
+            width: 90%;
+        }
+
+        footer {
+            font-size: 12px;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        #status {
+            padding: 30px 0 20px 0;
+            text-align: center;
+        }
+
+            #status.hidden {
+                visibility: hidden;
+            }
+
+        #todoList {
+            height: 73vh;
+            margin: 0 auto;
+            width: 60%;
+        }
+
+            #todoList li {
+                border: 0;
+                list-style-type: none;
+                line-height: 2.5em;
+            }
+    </style>
 </head>
 <body>
+    <header>
+        <h1 id="projectName"></h1>
+    </header>
+
+    <hr />
+
+    <div id="status" class="hidden">
+        Please wait ...
+    </div>
+
+    <ul id="todoList">
+    </ul>
+
+    <hr />
+
+    <footer>
+        Powered by <a href="https://backbone.forcrowd.org" target="_blank">Backbone</a> Version 0.2
+    </footer>
+
     <script type="text/javascript">
 
-        console.log("test");
+        // Current user's token
+        var token = "nAN6cSTi18b7euc3BiMRGi_FSxu1NCtvtMs2O68yZOQlk1MvvdWgU2Edjupf8mecHnzWPmLr5eHcNnT-XLZMVcVCuD65LbeBTP5cKNvgCB58uouAcsyMXaM5V0qKFYISWNFinyKFn8K3hs8y3F_RHIcNMD28XsC8Q65CjiEHjPQ_sP6jeUrTObU5rW1dFGDa38zfhb3wDpanv2wmBLDCNfiK2-44WeYJY_gaC5B0XdOUKJWHM_Q47lKVoIVVN9F2gYRqdyuZo0gfxjx419QEkOKkfpvsBWXnZWFCJVGfjUGIzCWxltEVulYHjfdmzA7qr0uAfNvnjFAyMc9IvT9jBHheNazWwL4r5zvTLRfiqXhFUOK-ZPfwxBU2-C_5Yx50-AwhQj0D9LgUc-f7ZkI7piAp5fgyPFath1VlgJPkWFZ4hNZV8MkWfMFlPgz_6z7Dtpr4hr9c03BWRl49N0DTkcz8Np1rDT16AUAEWk7GEiI";
 
-        // Get the project
-        httpGetAsync("https://api.backbone.forcrowd.org/odata/v1/Project(21)?$expand=User,ElementSet/ElementFieldSet,ElementSet/ElementItemSet/ElementCellSet", function (responseText) {
-            console.log("responseText", responseText);
-        });
+        // Get & initialize the project
+        var project = null;
 
-        //httpGetAsync("https://api.backbone.forcrowd.org/odata/v1/$metadata", function (responseText) {
-        //    console.log("responseText", responseText);
-        //});
+        executeHttpRequest("GET",
+            "https://api.backbone.forcrowd.org/odata/v1/Project(21)?$expand=User,ElementSet/ElementFieldSet,ElementSet/ElementItemSet/ElementCellSet/UserElementCellSet",
+            loadProject);
 
-        function httpGetAsync(theUrl, callback) {
-            var xmlHttp = new XMLHttpRequest();
-            xmlHttp.onreadystatechange = function () {
-                if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-                    callback(xmlHttp.responseText);
+        function executeHttpRequest(method, url, callback, requestData) {
+            requestData = requestData ? JSON.stringify(requestData) : null;
+
+            // Update UI
+            updateStatus(true);
+
+            var request = new XMLHttpRequest();
+
+            request.onreadystatechange = function () {
+                if (request.readyState == 4 && request.status == 200) {
+
+                    // Return the response
+                    var responseData = JSON.parse(request.responseText);
+                    callback(responseData);
+
+                    // Update UI
+                    updateStatus(false);
+                }
             }
-            xmlHttp.open("GET", theUrl, true); // true for asynchronous
-            xmlHttp.send(null);
+
+            request.open(method, url, true); // true for asynchronous
+            request.setRequestHeader("Authorization", "Bearer " + token);
+            request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+            request.send(requestData);
+        }
+
+        function loadProject(projects) {
+
+            // Get the project
+            project = projects.value[0];
+
+            // Title
+            document.title = project.Name;
+
+            // Header
+            document.getElementById("projectName").innerText = project.Name;
+
+            // Todo list
+            var items = project.ElementSet[0].ElementItemSet;
+
+            document.getElementById("todoList").innerHTML = "";
+            for (var i = 0; i < items.length; i++) {
+
+                var item = items[i];
+                var checked = Number(item.ElementCellSet[0].UserElementCellSet[0].DecimalValue) === 1;
+
+                document.getElementById("todoList").innerHTML +=
+                    `<li>
+                        <input id="item${i}" type="checkbox" ${checked ? "checked" : ""} onclick="itemChanged(${item.Id});" />
+                        <label for="item${i}">${item.Name}</label>
+                    </li>`;
+            }
+        }
+
+        function itemChanged(itemId) {
+
+            var item = null;
+
+            for (var i = 0; i < project.ElementSet[0].ElementItemSet.length; i++) {
+                if (project.ElementSet[0].ElementItemSet[i].Id === itemId) {
+                    item = project.ElementSet[0].ElementItemSet[i];
+                    break;
+                }
+            }
+
+            var userCell = item.ElementCellSet[0].UserElementCellSet[0];
+
+            var url = `https://api.backbone.forcrowd.org/odata/v1/UserElementCell(userId=${userCell.UserId},elementCellId=${userCell.ElementCellId})`;
+
+            var data = {
+                DecimalValue: userCell.DecimalValue === "0.00" ? "1.00" : "0.00",
+                RowVersion: userCell.RowVersion,
+            }
+
+            executeHttpRequest("PATCH", url, updateUserCell, data);
+
+            function updateUserCell(updatedUserCell) {
+                userCell.DecimalValue = updatedUserCell.DecimalValue;
+                userCell.RowVersion = updatedUserCell.RowVersion;
+            }
+        }
+
+        // Updates UI during the http requests
+        function updateStatus(requesting) {
+
+            if (requesting) {
+                document.getElementById("status").classList.remove("hidden");
+
+                var items = document.getElementsByTagName("input");
+                for (var i = 0; i < items.length; i++) {
+                    items[i].disabled = true;
+                }
+
+            } else {
+
+                document.getElementById("status").classList.add("hidden");
+
+                var items = document.getElementsByTagName("input");
+                for (var i = 0; i < items.length; i++) {
+                    items[i].disabled = false;
+                }
+            }
         }
 
     </script>
-    
-    <h1>Todo App</h1>
-    <ul id="list">
-        <li></li>
-    </ul>
-    <p>I'm hosted with GitHub Pages. yaaass!</p>
-    <footer>
-        v0.2
-    </footer>
 </body>
 </html>
